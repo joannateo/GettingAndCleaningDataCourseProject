@@ -112,6 +112,5 @@ write.csv(data, file = 'data.txt', row.names = FALSE, quote = FALSE)
 ## Step 5. Create an independent tidy data set with the average of each
 ## variable for each activity and each subject
 mdata <- melt(data[, -1], id = c('subject', 'activity'))
-means <- aggregate(value ~ subject + activity + variable, data = mdata,
-                   FUN = mean)
-
+data_5 <- dcast(mdata, subject + activity ~ variable, mean)
+write.table(data_5, 'data_step_5.txt', row.names = FALSE)
