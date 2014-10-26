@@ -1,3 +1,6 @@
+library(reshape2)
+
+
 ## Read the features list
 features <- read.table('UCI HAR Dataset/features.txt', as.is = TRUE)$V2
 
@@ -65,9 +68,50 @@ data <- data[, selected_fields]
 
 
 ## Step 04. Label the columns with descriptive variable names ----
-names(data) <- sub('tBodyAcc-mean\\(\\)', 'mean.body.acceleration',
-                   names(data))
-names(data) <- sub('tBodyAcc-std\\(\\)', 'std.body.acceleration', names(data))
-names(data) <- sub('tGravityAcc-mean\\(\\)', 'mean.gravity.acceleration',
-                   names(data))
-names(data) <- 
+## Create vectors with original name patterns and replacements
+original_name = c('tBodyAcc', 'tGravityAcc',
+                  'tBodyAccJerk', 'tBodyGyro',
+                  'tBodyGyroJerk', 'tBodyAccMag',
+                  'tGravityAccMag', 'tBodyAccJerkMag',
+                  'tBodyGyroMag', 'tBodyGyroJerkMag',
+                  'fBodyAcc', 'fBodyAccJerk',
+                  'fBodyGyro', 'fBodyAccMag',
+                  'fBodyAccJerkMag', 'fBodyGyroMag',
+                  'fBodyGyroJerkMag', 'fBodyBodyAccJerkMag',
+                  'fBodyBodyGyroMag', 'fBodyBodyGyroJerkMag')
+replacement = c('time.body.acceleration', 'time.gravity.acceleration',
+                'time.body.acceleration.jerk', 'time.body.gyroscope',
+                'time.body.gyroscope.jerk', 'time.body.acceleration.magnitude',
+                'time.gravity.acceleration.magnitude',
+                'time.body.acceleration.jerk.magnitude',
+                'time.body.gyroscope.magnitude',
+                'time.body.gyroscope.jerk.magnitude', 'freq.body.acceleration',
+                'freq.body.acceleration.jerk', 'freq.body.gyroscope',
+                'freq.body.acceleration.magnitude',
+                'freq.body.acceleration.jerk.magnitude',
+                'freq.body.gyroscope.magnitude',
+                'freq.body.gyroscope.jerk.magnitude',
+                'freq.body.body.acceleration.jerk.magnitude',
+                'freq.body.body.gyroscope.magnitude',
+                'freq.body.body.gyroscope.jerk.magnitude')
+for (k in seq_along(original_name))
+{
+    names(data) <- sub(sprintf('%s-mean\\(\\)', original_name[k]),
+                       sprintf('mean.%s', replacement[k]),
+                       names(data))
+    names(data) <- sub(sprintf('%s-std\\(\\)', original_name[k]),
+                       sprintf('std.%s', replacement[k]),
+                       names(data))
+}
+
+
+## Write the output ----
+write.csv(data, file = 'data.txt', row.names = FALSE, quote = FALSE)
+
+
+## Step 5. Create an independent tidy data set with the average of each
+## variable for each activity and each subject
+mdata <- melt(data[, -1], id = c('subject', 'activity'))
+means <- aggregate(value ~ subject + activity + variable, data = mdata,
+                   FUN = mean)
+
